@@ -1,3 +1,59 @@
+from pyspark.sql import DataFrame
+from pyspark.sql.functions import lit
+
+def combine_dataframes(df1: DataFrame, df2: DataFrame) -> DataFrame:
+    """
+    Combines two DataFrames by aligning columns, handling renamed and missing columns.
+    
+    Parameters:
+    - df1: First DataFrame
+    - df2: Second DataFrame
+    
+    Returns:
+    - Combined DataFrame
+    """
+    # Get column sets
+    df1_cols = set(df1.columns)
+    df2_cols = set(df2.columns)
+    
+    # Identify renamed columns (if column types match)
+    rename_map = {col: f"renamed_{col}" for col in df2_cols - df1_cols if col in df1_cols}
+    
+    # Rename columns in df2 to match df1 if needed
+    for old_col, new_col in rename_map.items():
+        df2 = df2.withColumnRenamed(old_col, new_col)
+    
+    # Find missing columns and add them as null
+    missing_cols_df1 = df1_cols - df2_cols
+    missing_cols_df2 = df2_cols - df1_cols
+    
+    for col in missing_cols_df1:
+        df2 = df2.withColumn(col, lit(None).cast(df1.schema[col].dataType))
+    
+    for col in missing_cols_df2:
+        df1 = df1.withColumn(col, lit(None).cast(df2.schema[col].dataType))
+    
+    # Union the two DataFrames
+    combined_df = df1.unionByName(df2, allowMissingColumns=True)
+    return combined_df
+
+# Usage Example
+# combined_df = combine_dataframes(df1, df2)
+# combined_df.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from pyspark.sql import SparkSession
 
 spark = SparkSession.builder.appName("Combine DataFrames Example").getOrCreate()
