@@ -1,0 +1,15 @@
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("Combine DataFrames Example").getOrCreate()
+
+# Create DataFrame 1
+data1 = [(1, "Alice", 30), (2, "Bob", 25)]
+df1 = spark.createDataFrame(data1, ["id", "name", "age"])
+print("DataFrame 1:")
+df1.show()
+
+# Create DataFrame 2
+data2 = [(3, "Charlie", 40, "New York"), (4, "David", 35, "San Francisco")]
+df2 = spark.createDataFrame(data2, ["id", "full_name", "age", "city"])
+print("DataFrame 2:")
+df2.show()
